@@ -32,14 +32,11 @@ vids.py --filter --video_show 17 --name "altered beast" --quality "hd" --downloa
 Usage: giant_bomb_cli.py [options]
 
 Options:
-  -v, --version         show program's version number and exit
   -l <x>, --limit <x>   limits the amount of items requested, defaults to 25
   --offset <x>          specify the offest into the results, defaults to 0
   --quality QUALITY     the quality of the video, used when streaming or
                         downloading (low, high, hd) defaults to high
   --download            will attempt to download all videos matching filters
-  --stream              will attempt to stream videos matching filters via
-                        mplayer
   --output OUTPUTFOLDER
                         the folder to output downloaded content to
   --dump_video_shows    will dump all known ids for video shows,
