@@ -98,3 +98,8 @@
 109: Reel Layers
 110: Run for the Hills
 111: Giant Bombathon
+113: Arcade Pit on Giant Bomb
+114: Sekiro-Choa
+115: Friday Night Forking
+116: Eternal Darkness at the Heart of My Soul
+119: Blight Club
