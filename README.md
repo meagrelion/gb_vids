@@ -70,3 +70,9 @@ Your api key can be requested and found at http://www.giantbomb.com/api/
 Your api key is stored in your home directory (~/.giant_bomb_cli/config)
 
 If you wish to change api key, just delete the config file and you'll be prompted to input a new one next time the script is run
+
+# Updates
+#### 2023-01-21
+- updated dump_video_shows to grab over a 100 results
+- will display the results received and the total possible results now
+- added filter for video_type, should help with downloading shows with no video_show id
