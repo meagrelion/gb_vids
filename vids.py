@@ -14,6 +14,9 @@ import shutil
 # 5. removed checks on url validity - incorrect urls just get an error vid
 # !  modified the URL generation in output_response
 # ! this is due to the XML being malformed in the GB API (missing field hd_url)
+# 6. updated dump_video_shows to grab over a 100 results
+# 7. will display the results received and the total possible results now
+# 8. added filter for video_type, should help with downloading shows with no video_show id
 
 VIDEO_QUALITIES = {"low",
                    "high",
@@ -80,6 +83,8 @@ def create_filter_string_from_args(args):
             filter_string += "id:" + args.contentID + ","
         if args.videoShow != None:
             filter_string += "video_show:" + args.videoShow + ","
+        if args.videoType != None:
+            filter_string += "video_type:" + args.videoType + ","
 
     return filter_string
 
@@ -121,18 +126,30 @@ def retrieve_json_from_url(url, json_obj):
 
     return False
 
-def dump_video_shows(api_key):
+def dump_video_shows(args, api_key):
     " Print out the list of video shows "
     print ("Dumping video show IDs")
     shows_url = "http://www.giantbomb.com/api/video_shows/?api_key={0}&format=json".format(api_key)
+    shows_url += "&offset=" + str(args.offest)
     json_obj = json.loads("{}")
 
     if retrieve_json_from_url(shows_url, json_obj) is False:
         print ("Failed to retrieve video shows from GB API")
         return 1
-
+    
     for video_show in json_obj["results"]:
         print ("{0}: {1}".format(video_show["id"], video_show["title"]))
+
+    " just repeat with offset of 100 to grab the rest "
+    shows_url += "&offset=100"
+
+    if retrieve_json_from_url(shows_url, json_obj) is False:
+        print ("Failed to retrieve video shows from GB API")
+        return 1
+    
+    for video_show in json_obj["results"]:
+        print ("{0}: {1}".format(video_show["id"], video_show["title"]))
+        
     
 def dump_video_categories(api_key):
     " Print out the list of video shows "
@@ -213,7 +230,7 @@ def output_response(response, args, download_archive):
             filename = format_filename(name)
             if url:
                 filename += "." + url.split(".")[-1] # appends extension
-                url = url.replace('1500','3500') # HD work around for older series - changes high to HD
+                #url = url.replace('1500','3500') # HD work around for older series - changes high to HD
                 
             if args.outputFolder != None:
                 if not os.path.exists(args.outputFolder):
@@ -255,7 +272,7 @@ def main():
     parser = argparse.ArgumentParser(description='GB Vids Command Line Interface vGL.1.0')
 
     parser.add_argument('-l', '--limit', dest="limit", action="store", type=int,
-                        default=25, metavar="<x>",
+                        default=50, metavar="<x>",
                         help="limits the amount of items requested, defaults to %(default)s")
 
     parser.add_argument('--offset', dest="offest", action="store", type=int,
@@ -300,6 +317,9 @@ def main():
 
     filter_opts.add_argument('--video_show', dest="videoShow", action="store",
                              help="id of the video show (see --dump_video_shows)")
+                             
+    filter_opts.add_argument('--video_type', dest="videoType", action="store",
+                             help="id of the video type (see --dump_video_shows)")
 
     # Debug options
     degbug_options = parser.add_argument_group("Debug Options")
@@ -315,7 +335,7 @@ def main():
     api_key = get_api_key()
 
     if args.shouldDumpIDs:
-        dump_video_shows(api_key)
+        dump_video_shows(args, api_key)
         return 0
     
     if args.shouldDumpCats:
@@ -332,10 +352,8 @@ def main():
     if retrieve_json_from_url(request_url, json_obj) is False:
         print ("Failed to get response from server")
         return 1
-
+            
     if args.debugMode:
-        print ("Received {0} of {1} possible results".format(json_obj["number_of_page_results"],
-            json_obj["number_of_total_results"]))
         print (json.dumps(json_obj, sort_keys=True, indent=4))
 
     download_archive = {"Downloaded": []}
@@ -346,6 +364,9 @@ def main():
             download_archive = json.load(archive_file)
 
     output_response(json_obj, args, download_archive)
+    
+    print ("Received {0} of {1} possible results".format(json_obj["number_of_page_results"],
+        json_obj["number_of_total_results"]))
 
     if args.downloadArchive:
         with open(args.downloadArchive, 'w') as archive_file:
